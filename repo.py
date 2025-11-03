@@ -4,7 +4,7 @@ import subprocess
 
 
 args = [
-    ['git','add','C:\projects\Game_Programming_in_C-_Creating_3D_Games'],#git add
+    ['git','add',r'C:\projects\Game_Programming_in_C-_Creating_3D_Games'],#git add
     ['git','commit','-m','update'],#git commit
     ['git','push'],#git push
 ]
