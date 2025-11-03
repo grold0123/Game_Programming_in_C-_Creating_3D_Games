@@ -1,101 +1,82 @@
-//====================================
-//initial_pong_setup
-//====================================
+/*====================================
+initial_pong_setup
+====================================*/
 #include<iostream>
 #include<string>
+#include<vector>
 #include<SDL3/SDL.h>
 //====================================
 std::string TITLE = "Basic input processing";
 int WIDTH = 700;
 int HEIGHT = 520;
-//====================================
-//[Game class declaration]
-class Game{
-/*************************************
-1.	constructor
-2.	initialize sdl
-	-	create sdl window	
-3.	game loop
-	-	loop condition
-	-	process input
-	-	update game
-	-	generate output
-4.	close game
-	-	destroy window
-	-	quit sdl
-*************************************/
-public:
-	Game();
-	bool initialize();
-	void game_loop();
-	void shutdown();
-private:
-	void process_input();
-	void update_game();
-	void generate_output();
-
-	SDL_Window*game_window;
-	bool is_running;
+struct BGCOLOR{
+	int R = 255;
+	int G = 255;
+	int B = 255;
+	int A = 255;
 };
-//====================================
-//[Game class definition]
-Game::Game():
-	game_window(nullptr),
-	is_running(true)
-{}
-bool Game::initialize(){
-	//initialize sdl
-	if (!SDL_Init(SDL_INIT_VIDEO)) {
-		std::cout << "Failed to initialize\n";
-		return false;
-	}
-	//create game window
-	this->game_window = SDL_CreateWindow(TITLE.c_str(),WIDTH,HEIGHT,0);
-	if (!game_window) {
-		std::cout << "Failed to create a game window\n";
-		return false;
-	}
-	return true;
-}
-void Game::game_loop(){
-	while (is_running) {
-		this->process_input();
-		this->update_game();
-		this->generate_output();
-	}
-}
-void Game::shutdown(){
-	SDL_DestroyWindow(game_window);
-	SDL_Quit();
-}
-void Game::process_input(){
-	SDL_Event event;
-	if (SDL_PollEvent(&event)) {
-		switch (event.type) {
-			case SDL_EVENT_QUIT: this->is_running = false; break;
-			case SDL_EVENT_KEY_DOWN: switch (event.key.key) {
-				case SDLK_W : std::cout << "Pressed W key\n"; break;
-				case SDLK_S : std::cout << "Pressed S key\n"; break;
-				case SDLK_D : std::cout << "Pressed D key\n"; break;
-				case SDLK_A : std::cout << "Pressed A key\n"; break;
+enum gamestate{
+	RUNNING,CLOSE_GAME
+};
+/*====================================
+1.	initialize sdl
+2.	create window
+3.	create renderer
+4.	game loop
+	-	get inputs
+	-	update game
+	-	render
+5.	shutdown
+=====================================*/
+int main(){
+	//=============================================
+	if (!SDL_Init(SDL_INIT_VIDEO))return 1; 
+	SDL_Window*window = SDL_CreateWindow(TITLE.c_str(),WIDTH,HEIGHT,0);
+	if (!window) return 1;			
+	SDL_Renderer*renderer = SDL_CreateRenderer(window,NULL);
+	if (!renderer) return 1;
+	//=============================================
+	gamestate gamestate = RUNNING;
+	BGCOLOR BG;	
+	SDL_Rect paddle{
+		0,0
+	};
+	//=============================================
+	while (gamestate != CLOSE_GAME) {
+		//handle inputs
+		SDL_Event event;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_EVENT_KEY_DOWN : 
+					switch (event.key.key) { 					
+						case SDLK_W : std::cout << "Pressed W key\n"; break;
+						case SDLK_S : std::cout << "Pressed S key\n"; break;
+						case SDLK_D : std::cout << "Pressed D key\n"; break;
+						case SDLK_A : std::cout << "Pressed A key\n"; break;					
+					}					
+					break;				
+				case SDL_EVENT_QUIT : 
+					gamestate = CLOSE_GAME;
+					break;
+				default : 
+					break;
 			}
 		}
-	}
-}
-void Game::update_game(){
+		//update
 
-}
-void Game::generate_output(){
+		//draw bg
+		SDL_SetRenderDrawColor(renderer,BG.R,BG.G,BG.B,BG.A);
+		SDL_RenderClear(renderer);
 
-}
-//====================================
-int main(){
-	Game game;
-	bool success = game.initialize();
-	if (success) {
-		game.game_loop();
+
+
+		//display renderer
+		SDL_RenderPresent(renderer);
 	}
-	game.shutdown();
+	//=============================================
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
+	//=============================================
 	return 0;
 }
-//====================================
