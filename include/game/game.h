@@ -2,11 +2,8 @@
 #include<SDL3/SDL.h>
 #include<string>
 //========================================================
-struct dimension{
-    int width ; int height;
-};
-struct position{
-    int x ; int y;
+struct vector2d{
+    int x; int y;
 };
 struct color{
     int R;
@@ -17,12 +14,13 @@ struct color{
 enum gamestate{
     IN_GAME,CLOSE_GAME
 };
+int SPEED = 5;
 //========================================================
 class Game{
 public:
     Game();
     std::string gametitle;
-    dimension dimensions;
+    vector2d dimensions;
     color bg;
     bool initialize();
     void run();
@@ -37,3 +35,14 @@ private:
     void draw_bg();
 };
 //========================================================
+class Shape{
+public:
+    Shape(color,SDL_Rect);
+    void draw(SDL_Renderer*);
+private:
+    color shape_color;
+    SDL_Rect shape_rect;
+    vector2d shape_pos;
+    vector2d shape_vel;
+    int shape_speed;
+};

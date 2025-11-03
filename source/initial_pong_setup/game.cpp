@@ -10,7 +10,7 @@ Game::Game():
 {}
 bool Game::initialize(){
     if (!SDL_Init(SDL_INIT_VIDEO)) return false;
-    this->window = SDL_CreateWindow(gametitle.c_str(),dimensions.width,dimensions.height,0);
+    this->window = SDL_CreateWindow(gametitle.c_str(),dimensions.x,dimensions.y,0);
     if (!window) return false;
     this->renderer = SDL_CreateRenderer(window,nullptr);
     if (!renderer) return false;
@@ -44,3 +44,9 @@ void Game::draw_bg(){
     SDL_RenderClear(renderer);
 }
 //========================================================
+Shape::Shape(color color,SDL_Rect rect):
+    shape_color({color.R,color.G,color.B,color.A}),
+    shape_rect({rect.x,rect.y,rect.w,rect.h}),
+    shape_speed(SPEED)
+{}
+
