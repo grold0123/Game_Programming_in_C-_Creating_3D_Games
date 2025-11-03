@@ -10,7 +10,10 @@ args = [
 ]
 
 for arg in args:
-    subprocess.run(arg)
+    result = subprocess.run(arg)
+    if result.returncode != 0:
+        print("\n\nRepository not updated\n\n")
+        break;
     print("\n\n")
     
 print("Repository successfully updated\n\n")
