@@ -14,7 +14,19 @@ struct color{
 enum gamestate{
     IN_GAME,CLOSE_GAME
 };
-int SPEED = 5;
+//========================================================
+class Shape{
+public:
+    Shape(color,SDL_Rect);
+    void draw(SDL_Renderer*);
+    void move(Uint64);    
+private:
+    color shape_color;
+    SDL_Rect shape_rect;
+    vector2d shape_pos;
+    vector2d shape_vel;
+    int shape_speed;    
+};
 //========================================================
 class Game{
 public:
@@ -32,17 +44,8 @@ private:
     void input();
     void update();
     void render();
-    void draw_bg();
+    void draw_bg();    
+    Shape ball;
+    Uint64 last_time = 0;
 };
 //========================================================
-class Shape{
-public:
-    Shape(color,SDL_Rect);
-    void draw(SDL_Renderer*);
-private:
-    color shape_color;
-    SDL_Rect shape_rect;
-    vector2d shape_pos;
-    vector2d shape_vel;
-    int shape_speed;
-};
