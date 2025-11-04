@@ -35,7 +35,7 @@ else:
         print("\n\n========================Build successful========================\n\n")
         print("========================Opening Program========================\n\n")
         time.sleep(.5)
-        os.system('cls')
+        
         subprocess.run([build])
     else:
         print("\n\n========================Build not successful========================\n\n")
