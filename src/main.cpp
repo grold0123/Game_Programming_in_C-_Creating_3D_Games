@@ -16,6 +16,92 @@ struct vec2D{
 };
 //-------------------------------------------------------------
 //classes
+enum paddleSide{LEFT,RIGHT};
+class Paddle{
+public:
+    Paddle(paddleSide p,const int&gameWidth,const int&gameHeight):
+        paddleColor(0,0,0,255),
+        side(p)
+    {
+        if (side == LEFT){
+            rect.x = 0;
+            rect.y = gameHeight/8.0f;
+            rect.w = 15;
+            rect.h = gameHeight/4.0f;
+            position.x = rect.x;
+            position.y = rect.y;
+        }
+        else if (side == RIGHT){
+            rect.x = gameWidth - 15;
+            rect.y = gameHeight/8.0f;
+            rect.w = 15;
+            rect.h = gameHeight/4.0f;
+            position.x = rect.x;
+            position.y = rect.y;
+        }
+    }
+    void control(const bool*keystate){
+        direction = {0,0};
+        if (side == LEFT){
+            if (keystate[SDL_SCANCODE_W]) direction.y = -1;
+            else if (keystate[SDL_SCANCODE_S]) direction.y = 1;
+        }
+        if (side == RIGHT){
+            if (keystate[SDL_SCANCODE_UP]) direction.y = -1;
+            else if (keystate[SDL_SCANCODE_DOWN]) direction.y = 1;
+        }        
+    }
+    void move(const float&deltaTime,const int&gameWidth,const int&gameHeight){
+
+        // velocity.x += acceleration.x * deltaTime;
+        velocity.y = direction.y * deltaTime * speed;
+
+        {//clamp
+            vec2D next {
+                position.x + velocity.x , 
+                position.y + velocity.y
+            };
+            // if (next.x <= 0) {
+            //     velocity.x = 0;
+            //     position.x = 0;
+            // }
+            // if (next.x + rect.w >= gameWidth){
+            //     velocity.x = 0;
+            //     position.x = gameWidth - rect.w;
+            // }
+            if (next.y <= 0) {
+                velocity.y = 0;
+                position.y = 0;
+            }
+            if (next.y + rect.h >= gameHeight){
+                velocity.y = 0;
+                position.y = gameHeight - rect.h;
+            }
+        }
+        
+        // position.x += velocity.x * deltaTime;
+        position.y += velocity.y ;                
+
+        // rect.x = position.x;
+        rect.y = position.y;
+    }
+    void draw(SDL_Renderer*rend)const{
+        SDL_SetRenderDrawColor(
+            rend,
+            static_cast<Uint8>(paddleColor.r),
+            static_cast<Uint8>(paddleColor.g),
+            static_cast<Uint8>(paddleColor.b),
+            static_cast<Uint8>(paddleColor.a)
+        );
+        SDL_RenderFillRect(rend,&rect);
+    }
+private:
+    float speed = 1400;
+    SDL_FRect rect;
+    vec2D direction,position,velocity,acceleration;
+    color paddleColor;
+    paddleSide side;
+};
 class Ball{
 public:
     void move(const float&deltaTime,const int&gameWidth,const int&gameHeight){                
@@ -80,7 +166,8 @@ private:
 };
 class Game{
 public:
-    Game(){}
+    Game():
+        leftPaddle(LEFT,gameWidth,gameHeight),rightPaddle(RIGHT,gameWidth,gameHeight){}
     bool initialize(){
         if (!SDL_Init(SDL_INIT_VIDEO)) return false;
         if (!SDL_CreateWindowAndRenderer(title,gameWidth,gameHeight,SDL_WINDOW_RESIZABLE,&window,&renderer)) return false;        
@@ -112,6 +199,7 @@ private:
     SDL_Event event;
     
     Ball ball;
+    Paddle leftPaddle, rightPaddle;
 
     void pollEvent () {        
         while (SDL_PollEvent(&event)){
@@ -127,14 +215,27 @@ private:
             }
         }
     }
-    void input () {}
+    void input () {
+        keystate = SDL_GetKeyboardState(nullptr);
+        {//paddle controls
+            leftPaddle.control(keystate);
+            rightPaddle.control(keystate);
+        }        
+    }
     void update () {
         {//get delta time
             currentTime = SDL_GetTicks();
             deltaTime = (currentTime - lastTime)/1000.0f ;
             lastTime = currentTime;
         }
-        ball.move(deltaTime,gameWidth,gameHeight);
+        {//move ball
+            ball.move(deltaTime,gameWidth,gameHeight);
+        }
+        {//move paddle 
+            leftPaddle.move(deltaTime,gameWidth,gameHeight);
+            rightPaddle.move(deltaTime,gameWidth,gameHeight);
+        }
+        
     }
     void render () {
         {//clear renderer with bgColor
@@ -147,8 +248,12 @@ private:
             );
             SDL_RenderClear(renderer);
         }
-        {//renderball
+        {//render ball
             this->ball.draw(renderer);
+        }
+        {//render paddles
+            leftPaddle.draw(renderer);
+            rightPaddle.draw(renderer);
         }
         SDL_RenderPresent(renderer);
     }  
@@ -176,4 +281,7 @@ g++ src\main.cpp -Llib -Iinclude -lSDL3 -lSDL3_image -o build\inputs.exe
 
 --ball class
 g++ src\main.cpp -Llib -Iinclude -lSDL3 -lSDL3_image -o build\ball_class.exe
+
+--paddle class
+g++ src\main.cpp -Llib -Iinclude -lSDL3 -lSDL3_image -o build\paddle_class.exe
 */
