@@ -1,57 +1,65 @@
 #include"game.hpp"
+#include"object.hpp"
+#include<vector>
+#include<iostream>
+using namespace std;
 
-Game::Game(){}
 bool Game::setup(){
-    if (!SDL_Init(SDL_INIT_VIDEO)) return false;
-    {//create window and renderer
-        if (!SDL_CreateWindowAndRenderer(
-        gameTitle,gameWidth,gameHeight,flag,&window,&renderer)
-        ) return false;
+    if (SDL_Init(SDL_INIT_VIDEO)){
+        if (SDL_CreateWindowAndRenderer(
+            gameTitle,
+            gameWidth,
+            gameHeight,
+            windowFlag,
+            &gameWindow,
+            &gameRenderer)) 
+        {
+            return true;
+        }
     }
-    return true;
+    return false;
 }
-void Game::run(){
-    this->objects.push_back(Object(SDL_FRect{0,0,50,50}));
-    while (gameState != CLOSE_GAME){
-        this->pollEvent();
-        this->getInput();
-        this->update();
-        this->render();    
-    }
-}
-void Game::pollEvent(){
-    while(SDL_PollEvent(&gameEvent)){
-        switch(gameEvent.type) {
-            case SDL_EVENT_QUIT : gameState = CLOSE_GAME;break;
+void Game::run(){    
+    GameObject ball({0,0,50,50});
+    while(gameState != CLOSE_GAME) {                                
+        {//poll event
+            while (SDL_PollEvent(&gameEvent)) {
+                if (gameEvent.type == SDL_EVENT_QUIT) gameState = CLOSE_GAME;
+                else if (gameEvent.type == SDL_EVENT_KEY_DOWN){
+                    ball.displayPhysics();
+                    cout << "current - last: " << (currentTime-lastTime) << endl;
+                    cout << "Delta time: " << deltaTime << endl;
+                } 
+            }
+        }
+        {//get input 
+            keyState = SDL_GetKeyboardState(nullptr);            
+            ball.getDirection(keyState);
+        }
+        {//update
+            {//delta time
+                currentTime = static_cast<double>(SDL_GetTicks());
+                deltaTime = (currentTime - lastTime)/1000.0;
+                if (deltaTime < .0001) deltaTime = 0.0001;
+                lastTime = currentTime;
+                
+            }                      
+            ball.move(deltaTime,gameWidth,gameHeight);
+        }
+        {//render
+            {//bg color
+                SDL_SetRenderDrawColor(gameRenderer,255,255,255,255);
+                SDL_RenderClear(gameRenderer);
+            }
+            {//draw game objects
+                ball.draw(*gameRenderer);
+            }
+            SDL_RenderPresent(gameRenderer);
         }
     }
 }
-void Game::getInput(){
-    keystate = SDL_GetKeyboardState(nullptr);
-}
-void Game::update(){
-    {//delta time
-        currentTime = SDL_GetTicks();
-        deltaTime = (currentTime-lastTime)/1000.0f;
-        lastTime = currentTime;
-    }    
-    for (auto&obj:objects) obj.update(deltaTime);
-}
-void Game::render(){
-    {//renderer clear with bgColor
-        SDL_SetRenderDrawColor(renderer,
-            static_cast<Uint8>(bgColor.r),
-            static_cast<Uint8>(bgColor.g),
-            static_cast<Uint8>(bgColor.b),
-            static_cast<Uint8>(bgColor.a)
-        );
-        SDL_RenderClear(renderer);
-    }
-    for (auto&obj:objects) obj.draw(renderer);
-    SDL_RenderPresent(renderer);
-}
 void Game::shutdown(){
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(gameRenderer);
+    SDL_DestroyWindow(gameWindow);
     SDL_Quit();
 }
